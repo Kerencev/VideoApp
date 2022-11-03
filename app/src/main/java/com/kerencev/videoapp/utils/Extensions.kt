@@ -1,4 +1,4 @@
-package com.kerencev.videoapp
+package com.kerencev.videoapp.utils
 
 import android.content.res.AssetManager
 
