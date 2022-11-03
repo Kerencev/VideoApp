@@ -1,7 +1,7 @@
 package com.kerencev.videoapp.ui.main
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.kerencev.videoapp.R
 import com.kerencev.videoapp.ui.video.VideoFragment
 
