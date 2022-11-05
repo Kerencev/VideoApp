@@ -1,6 +1,8 @@
 package com.kerencev.videoapp.di
 
 import android.content.res.AssetManager
+import androidx.room.Room
+import com.kerencev.videoapp.data.room.VideoHistoryDb
 import com.kerencev.videoapp.model.repository.MediaRepository
 import com.kerencev.videoapp.model.repository.MediaRepositoryImpl
 import com.kerencev.videoapp.viewmodel.VideoViewModel
@@ -12,6 +14,15 @@ val appModule = module {
 
     single<AssetManager> { androidContext().assets }
     single<MediaRepository> { MediaRepositoryImpl(get()) }
+    single {
+        Room.databaseBuilder(
+            androidContext(),
+            VideoHistoryDb::class.java,
+            "minitv.db"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+    }
 
     viewModel { VideoViewModel(get()) }
 }
