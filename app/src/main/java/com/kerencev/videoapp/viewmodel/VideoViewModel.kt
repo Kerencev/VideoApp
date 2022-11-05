@@ -1,4 +1,4 @@
-package com.kerencev.videoapp.ui.video
+package com.kerencev.videoapp.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

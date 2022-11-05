@@ -1,9 +1,9 @@
-package com.kerencev.videoapp.ui.main
+package com.kerencev.videoapp.view.main
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.kerencev.videoapp.R
-import com.kerencev.videoapp.ui.video.VideoFragment
+import com.kerencev.videoapp.view.video.VideoFragment
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

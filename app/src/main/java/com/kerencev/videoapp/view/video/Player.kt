@@ -1,4 +1,4 @@
-package com.kerencev.videoapp.ui.video
+package com.kerencev.videoapp.view.video
 
 import android.content.res.AssetFileDescriptor
 import android.content.res.Resources

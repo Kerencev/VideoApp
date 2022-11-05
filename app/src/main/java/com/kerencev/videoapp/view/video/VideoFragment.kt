@@ -1,4 +1,4 @@
-package com.kerencev.videoapp.ui.video
+package com.kerencev.videoapp.view.video
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.kerencev.videoapp.databinding.FragmentVideoBinding
+import com.kerencev.videoapp.viewmodel.VideoViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class VideoFragment : Fragment(), SurfaceHolder.Callback {
