@@ -7,15 +7,19 @@ import androidx.lifecycle.viewModelScope
 import com.kerencev.videoapp.VideoState
 import com.kerencev.videoapp.model.dto.VideoList
 import com.kerencev.videoapp.model.repository.MediaRepository
+import com.kerencev.videoapp.model.repository.ReportsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class VideoViewModel(private val mediaRepository: MediaRepository) : ViewModel() {
+class VideoViewModel(
+    private val mediaRepository: MediaRepository,
+    private val reportsRepository: ReportsRepository
+) : ViewModel() {
 
     private val _videoData = MutableLiveData<VideoState>()
     val videoData: LiveData<VideoState> get() = _videoData
     private var videoList: VideoList? = null
-    private var currentOrder: Int = 0
+    private var nextOrder: Int = 0
     private var currentTime: Int = 0
 
     fun getVideo() {
@@ -25,7 +29,7 @@ class VideoViewModel(private val mediaRepository: MediaRepository) : ViewModel()
             }
             videoList?.let { listOfVideos ->
                 val video = mediaRepository.fetchVideoFromAssets(
-                    fileName = listOfVideos[currentOrder].videoIdentifier
+                    fileName = listOfVideos[nextOrder].videoIdentifier
                 )
                 _videoData.postValue(
                     VideoState(
@@ -34,13 +38,23 @@ class VideoViewModel(private val mediaRepository: MediaRepository) : ViewModel()
                     )
                 )
                 currentTime = 0
-                currentOrder = if (currentOrder == listOfVideos.lastIndex) 0 else currentOrder + 1
+                nextOrder = if (nextOrder == listOfVideos.lastIndex) 0 else nextOrder + 1
             }
         }
     }
 
+    /**
+     * Function to save current video to data base
+     */
     fun saveVideoToDataBase() {
-
+        viewModelScope.launch(Dispatchers.IO) {
+            videoList?.let { listOfVideos ->
+                val currentOrder = if (nextOrder == 0) listOfVideos.lastIndex else nextOrder - 1
+                reportsRepository.saveReportToDb(
+                    video = listOfVideos[currentOrder]
+                )
+            }
+        }
     }
 
     /**
@@ -53,7 +67,7 @@ class VideoViewModel(private val mediaRepository: MediaRepository) : ViewModel()
                 currentTime = currentTime
             )
         }
-        currentOrder -= 1
+        nextOrder -= 1
     }
 
     override fun onCleared() {
