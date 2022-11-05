@@ -1,25 +1,21 @@
 package com.kerencev.videoapp.ui.video
 
-import android.content.res.AssetFileDescriptor
-import android.content.res.Resources
-import android.media.MediaPlayer
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.SurfaceHolder
+import android.view.View
+import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.kerencev.videoapp.databinding.FragmentVideoBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class VideoFragment : Fragment(), SurfaceHolder.Callback, MediaPlayer.OnPreparedListener {
+class VideoFragment : Fragment(), SurfaceHolder.Callback {
 
     private var _binding: FragmentVideoBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: VideoViewModel by viewModel()
-    private var surfaceHolder: SurfaceHolder? = null
-    private var mediaPlayer: MediaPlayer? = null
+    private var player: Player? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,8 +27,24 @@ class VideoFragment : Fragment(), SurfaceHolder.Callback, MediaPlayer.OnPrepared
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        surfaceHolder = binding.surfaceView.holder
-        surfaceHolder?.addCallback(this)
+        viewModel.videoData.observe(viewLifecycleOwner) { videoData ->
+            player?.play(
+                video = videoData.currentVideo,
+                timeForStart = videoData.currentTime
+            )
+        }
+    }
+
+    override fun onStart() {
+        initFields()
+        viewModel.getVideo()
+        super.onStart()
+    }
+
+    override fun onStop() {
+        player?.let { viewModel.saveCurrentTime(it.getCurrentPosition()) }
+        player?.release()
+        super.onStop()
     }
 
     override fun onDestroyView() {
@@ -41,62 +53,26 @@ class VideoFragment : Fragment(), SurfaceHolder.Callback, MediaPlayer.OnPrepared
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
-        mediaPlayer = MediaPlayer()
-        mediaPlayer?.setDisplay(surfaceHolder)
-        val assetFileDescriptor: AssetFileDescriptor =
-            requireContext().assets.openFd("videos/video5.mp4")
-        try {
-            mediaPlayer?.setDataSource(
-                assetFileDescriptor.fileDescriptor,
-                assetFileDescriptor.startOffset,
-                assetFileDescriptor.length
-            )
-            mediaPlayer?.prepare()
-            mediaPlayer?.setOnPreparedListener(this)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        player?.setDisplay()
     }
 
-    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) = Unit
 
-    }
+    override fun surfaceDestroyed(holder: SurfaceHolder) = Unit
 
-    override fun surfaceDestroyed(holder: SurfaceHolder) {
+    private fun initFields() {
+        binding.surfaceView.holder.addCallback(this)
+        player = SurfacePlayer(
+            view = binding.surfaceView,
+            listener = object : VideoStateListener {
+                override fun onStartNewVideo() {
+                    viewModel.saveVideoToDataBase()
+                }
 
-    }
-
-    override fun onPrepared(mp: MediaPlayer) {
-        val videoWidth = mediaPlayer?.videoWidth
-        val videoHeight = mediaPlayer?.videoHeight
-        val screenWidth = Resources.getSystem().displayMetrics.widthPixels
-        val lp: ViewGroup.LayoutParams = binding.surfaceView.layoutParams
-        lp.width = screenWidth
-        lp.height =
-            (videoHeight!!.toFloat() / videoWidth!!.toFloat() * screenWidth.toFloat()).toInt()
-        binding.surfaceView.layoutParams = lp
-        mediaPlayer?.start()
-        Handler(Looper.getMainLooper()).postDelayed({
-            val pos = mediaPlayer?.currentPosition
-            mediaPlayer?.seekTo(1000)
-        }, 5000)
-
-    }
-
-    override fun onPause() {
-        super.onPause()
-        releaseMediaPlayer()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        releaseMediaPlayer()
-    }
-
-    private fun releaseMediaPlayer() {
-        if (mediaPlayer != null) {
-            mediaPlayer!!.release()
-            mediaPlayer = null
-        }
+                override fun onFinish() {
+                    viewModel.getVideo()
+                }
+            }
+        )
     }
 }

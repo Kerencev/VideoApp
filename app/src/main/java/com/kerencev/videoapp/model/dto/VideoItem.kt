@@ -1,7 +1,10 @@
-package com.kerencev.videoapp.model
+package com.kerencev.videoapp.model.dto
 
 import com.google.gson.annotations.SerializedName
 
+/**
+ * Data class for converting from a json file
+ */
 data class VideoItem(
     @SerializedName("VideoId")
     val videoId: Int,
